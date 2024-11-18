@@ -12,11 +12,10 @@ def file_exists_in_folder(folder_path, file_name):
 val = input("Enter your words: ") 
 words = val.split(',')
 words_list = [item.lower() for item in words]
-
+base_url = "https://dictionary.cambridge.org"
+folder_path = 'D:/ielts reading/audio file'
 for i in words_list:
-    base_url = "https://dictionary.cambridge.org"
     url = f"https://dictionary.cambridge.org/dictionary/english/{i}"
-    folder_path = '/media/kiendt/DATA/ielts reading/audio file'
     with requests.Session() as session:
         try:
             session.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64)'}
@@ -29,7 +28,7 @@ for i in words_list:
             if file_exists_in_folder(folder_path,check_path):
                 print(f"word {i} exists in folder {folder_path} with name {check_path}")
                 continue
-            save_path = f'/media/kiendt/DATA/ielts reading/audio file/{true_name}.mp3'
+            save_path = f'{folder_path}/{true_name}.mp3'
             check_url= 'https://dictionary.cambridge.org/dictionary/english/'
             if check_url == response.url:
                 print(f'word "{i}" is not correct or not exits in cambride data')
