@@ -1,12 +1,6 @@
-import os
-import requests
 import pandas as pd
 from urllib.parse import urljoin
-import requests
-from bs4 import BeautifulSoup
 from vnstock3 import Vnstock
-from vnstock3.explorer.misc.gold_price import *
-from vnstock3.explorer.misc.exchange_rate import *
 from vnstock3.botbuilder.noti import Messenger
 from datetime import datetime,timedelta,date
 import matplotlib.pyplot as plt
