@@ -12,8 +12,6 @@ import asyncio
 with open('/home/kiendt/code/ETL/KFinace/Key_info.json') as f:
     data = json.load(f)
 
-# stock = "MML"
-# path = f'/home/kiendt/code/ETL/data/{stock}.jpg'
 def send_tele(header,path,type):
     end = datetime.today().strftime('%Y-%m-%d')
     noti = Messenger(platform='telegram', channel=data['telegram']['channel'], token_key=data['telegram']['token'])
@@ -56,7 +54,7 @@ def exchange_rate(date):
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption="Here is your CSV file!"))
 
 def gold_price():
-    go_path = f'/home/kiendt/code/ETL/KFinace/data/gold_price_{date}.csv'
+    go_path = f'/home/kiendt/code/ETL/KFinace/data/gold_price.csv'
     df = btmc_goldprice()
     df.to_csv(go_path)
     bot = Bot(data['telegram']['token'])
