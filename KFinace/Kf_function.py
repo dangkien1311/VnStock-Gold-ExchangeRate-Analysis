@@ -22,7 +22,7 @@ def send_tele(header,path,type):
 
 def run_mfi(stocks, date):
     for stock in stocks:
-        path = f'/home/kiendt/code/ETL/KFinace/data/{stock}.jpg'
+        path = f'/home/kiendt/code/ETL/KFinace/data/stocks/{stock}.jpg'
         end = datetime.strptime(date, '%Y-%m-%d').date()
         start = (end - timedelta(days=21)).strftime('%Y-%m-%d')
         end = end.strftime('%Y-%m-%d')
@@ -42,7 +42,7 @@ def run_mfi(stocks, date):
         send_tele(stock,path,'stock')
 
 def exchange_rate(date):
-    ex_path = f'/home/kiendt/code/ETL/KFinace/data/exchange_rate_{date}.csv'
+    ex_path = f'/home/kiendt/code/ETL/KFinace/data/exchange_rate/exchange_rate_{date}.csv'
     df = vcb_exchange_rate(date=date)
     df['buy _cash'] = df['buy _cash'].replace('-', '0').str.replace(',', '').astype(float)
     df = df[df['buy _cash'] != 0]
@@ -54,10 +54,16 @@ def exchange_rate(date):
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption="Here is your CSV file!"))
 
 def gold_price():
-    go_path = f'/home/kiendt/code/ETL/KFinace/data/gold_price.csv'
+    go_path = f'/home/kiendt/code/ETL/KFinace/data/gold_price/gold_price.csv'
     df = btmc_goldprice()
     df.to_csv(go_path)
     bot = Bot(data['telegram']['token'])
     with open(go_path, "rb") as file:
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption="Here is your CSV file!"))
 
+def get_comInfo(stock):
+    go_path = f'/home/kiendt/code/ETL/KFinace/data/stock_info/{stock}/{stock}_companyInfo.zip'
+    KF.CompanyInfo(stock)
+    bot = Bot(data['telegram']['token'])
+    with open(go_path, "rb") as file:
+        asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption=f"Here is company information of {stock}!"))

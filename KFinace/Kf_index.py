@@ -4,6 +4,8 @@ from vnstock3 import Vnstock
 from vnstock3.botbuilder.noti import Messenger
 from datetime import datetime,timedelta,date
 import matplotlib.pyplot as plt
+import os
+import zipfile
 
 def MFI(stock, start_date, end_date):
     stock = Vnstock().stock(symbol = stock, source = 'VCI')
@@ -27,3 +29,31 @@ def MFI(stock, start_date, end_date):
     money_ratio = Posi/negav
     MFI = 100 - 100/(1+money_ratio)
     return {'mfi': MFI, 'data' : df}
+
+def CompanyInfo(stock):
+    init = Vnstock().stock(symbol = stock, source = 'TCBS').company
+    shareholders = init.shareholders()
+    news = init.news()
+    profile = init.profile()
+    officers = init.officers()
+    subsid = init.subsidiaries()
+    com_data = [
+        (shareholders,'shareholders.csv'),
+        (news,'news.csv'),
+        (profile,'profile.csv'),
+        (officers,'officers.csv'),
+        (subsid,'subsid.csv')
+    ]
+    direct = f'/home/kiendt/code/ETL/KFinace/data/stock_info/{stock}'
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+
+    for df,filename in com_data:
+        df.to_csv(os.path.join(direct,filename), index = False)
+    zipfile_name = direct + f'/{stock}_companyInfo.zip'
+    with zipfile.ZipFile(zipfile_name, 'w') as zipf:
+        for df, filename in com_data:
+            file_path = os.path.join(direct, filename)
+            zipf.write(file_path, arcname=filename)
+    for df, filename in com_data:
+        os.remove(os.path.join(direct, filename))
