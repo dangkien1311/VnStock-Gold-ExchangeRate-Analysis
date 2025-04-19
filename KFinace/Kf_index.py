@@ -1,7 +1,7 @@
 import pandas as pd
 from urllib.parse import urljoin
-from vnstock3 import Vnstock
-from vnstock3.botbuilder.noti import Messenger
+from vnstock import Vnstock
+from vnstock.botbuilder.noti import Messenger
 from datetime import datetime,timedelta,date
 import matplotlib.pyplot as plt
 import os
@@ -44,7 +44,7 @@ def CompanyInfo(stock):
         (officers,'officers.csv'),
         (subsid,'subsid.csv')
     ]
-    direct = f'/home/kiendt/code/ETL/KFinace/data/stock_info/{stock}'
+    direct = f'D:\DE\Python-Web-Scraping\KFinace\data\stock_info\\{stock}'
     if not os.path.exists(direct):
         os.mkdir(direct)
 
