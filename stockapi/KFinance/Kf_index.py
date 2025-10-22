@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import os
 import zipfile
 
+root_folder = os.path.dirname(os.path.abspath(__file__))
+
 def MFI(stock, start_date, end_date):
     stock = Vnstock().stock(symbol = stock, source = 'VCI')
     df = stock.quote.history(
@@ -44,7 +46,7 @@ def CompanyInfo(stock):
         (officers,'officers.csv'),
         (subsid,'subsid.csv')
     ]
-    direct = f'D:\DE\Python-Web-Scraping\KFinace\data\stock_info\\{stock}'
+    direct = root_folder + f'\data\stock_info\\{stock}'
     if not os.path.exists(direct):
         os.mkdir(direct)
 

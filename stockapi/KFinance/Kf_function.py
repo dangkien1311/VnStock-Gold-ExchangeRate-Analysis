@@ -4,12 +4,15 @@ from vnstock.explorer.misc.exchange_rate import *
 from datetime import datetime,timedelta,date
 import json
 import matplotlib.pyplot as plt
-import Kf_index as KF
+from stockapi.KFinance import Kf_index as KF
 from telegram import Bot
 import asyncio
+import os
 
+root_folder = os.path.dirname(os.path.abspath(__file__))
+keyJson_path = os.path.join(root_folder,"Key_info.json")
 
-with open('D:\DE\Python-Web-Scraping\KFinace\Key_info.json') as f:
+with open(keyJson_path) as f:
     data = json.load(f)
 
 def send_tele(header,path,type):
@@ -22,7 +25,8 @@ def send_tele(header,path,type):
 
 def run_mfi(stocks, date):
     for stock in stocks:
-        path = f'D:\DE\Python-Web-Scraping\KFinace\data\stocks\\{stock}.jpg'
+        stock_path = os.path.join(root_folder,"data","stock")
+        path = stock_path + f'\\{stock}.jpg'
         end = datetime.strptime(date, '%Y-%m-%d').date()
         start = (end - timedelta(days=21)).strftime('%Y-%m-%d')
         end = end.strftime('%Y-%m-%d')
@@ -42,7 +46,8 @@ def run_mfi(stocks, date):
         send_tele(stock,path,'stock')
 
 def exchange_rate(date):
-    ex_path = f'D:\DE\Python-Web-Scraping\KFinace\data\exchang_rate\\exchange_rate_{date}.csv'
+    path = os.path.join(root_folder,"data","exchang_rate")
+    ex_path = path + f'\\exchange_rate_{date}.csv'
     df = vcb_exchange_rate(date=date)
     df['buy _cash'] = df['buy _cash'].replace('-', '0').str.replace(',', '').astype(float)
     df = df[df['buy _cash'] != 0]
@@ -54,7 +59,8 @@ def exchange_rate(date):
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption="Here is your CSV file!"))
 
 def gold_price():
-    go_path = f'D:\DE\Python-Web-Scraping\KFinace\data\gold_price\\gold_price.csv'
+    path = os.path.join(root_folder,"data","gold_price")
+    go_path = path + f'\\gold_price.csv'
     df = btmc_goldprice()
     df.to_csv(go_path)
     bot = Bot(data['telegram']['token'])
@@ -62,7 +68,8 @@ def gold_price():
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption="Here is your CSV file!"))
 
 def get_comInfo(stock):
-    go_path = f'D:\DE\Python-Web-Scraping\KFinace\data\stock_info\\{stock}\\{stock}_companyInfo.zip'
+    path = os.path.join(root_folder,"data","stock_info")
+    go_path = path + f'\\{stock}\\{stock}_companyInfo.zip'
     KF.CompanyInfo(stock)
     bot = Bot(data['telegram']['token'])
     with open(go_path, "rb") as file:
