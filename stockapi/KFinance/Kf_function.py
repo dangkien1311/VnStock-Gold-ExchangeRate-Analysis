@@ -2,6 +2,7 @@ from vnstock.botbuilder.noti import Messenger
 from vnstock.explorer.misc.gold_price import *
 from vnstock.explorer.misc.exchange_rate import *
 from datetime import datetime,timedelta,date
+from vnstock import Quote
 import json
 import matplotlib.pyplot as plt
 from stockapi.KFinance import Kf_index as KF
@@ -25,8 +26,8 @@ def send_tele(header,path,type):
 
 def run_mfi(stocks, date):
     for stock in stocks:
-        stock_path = os.path.join(root_folder,"data","stock")
-        path = stock_path + f'\\{stock}.jpg'
+        stock_path = os.path.join(root_folder,"data","stocks")
+        path = stock_path + f'/{stock}.jpg'
         end = datetime.strptime(date, '%Y-%m-%d').date()
         start = (end - timedelta(days=21)).strftime('%Y-%m-%d')
         end = end.strftime('%Y-%m-%d')
@@ -46,8 +47,8 @@ def run_mfi(stocks, date):
         send_tele(stock,path,'stock')
 
 def exchange_rate(date):
-    path = os.path.join(root_folder,"data","exchang_rate")
-    ex_path = path + f'\\exchange_rate_{date}.csv'
+    path = os.path.join(root_folder,"data","exchange_rate")
+    ex_path = path + f'/exchange_rate_{date}.csv'
     df = vcb_exchange_rate(date=date)
     df['buy _cash'] = df['buy _cash'].replace('-', '0').str.replace(',', '').astype(float)
     df = df[df['buy _cash'] != 0]
@@ -60,7 +61,7 @@ def exchange_rate(date):
 
 def gold_price():
     path = os.path.join(root_folder,"data","gold_price")
-    go_path = path + f'\\gold_price.csv'
+    go_path = path + f'/gold_price.csv'
     df = btmc_goldprice()
     df.to_csv(go_path)
     bot = Bot(data['telegram']['token'])
@@ -69,8 +70,22 @@ def gold_price():
 
 def get_comInfo(stock):
     path = os.path.join(root_folder,"data","stock_info")
-    go_path = path + f'\\{stock}\\{stock}_companyInfo.zip'
+    go_path = path + f'/{stock}/{stock}_companyInfo.zip'
     KF.CompanyInfo(stock)
     bot = Bot(data['telegram']['token'])
     with open(go_path, "rb") as file:
         asyncio.run(bot.send_document(chat_id=data['telegram']['channel'], document=file, caption=f"Here is company information of {stock}!"))
+
+def stock_history(stock, start_date, end_date):
+    quote = Quote(symbol=stock, source='VCI')
+    df = quote.history(
+        start=start_date, 
+        end=end_date, 
+        interval='1D'
+        )
+    direct = root_folder + f'/data/stock_history/{stock}'
+    if not os.path.exists(direct):
+        os.mkdir(direct)
+    path = os.path.join(root_folder,"data","stock_history")
+    go_path = path + f'/{stock}/{stock}_historyinfo.csv'
+    df.to_csv(go_path)

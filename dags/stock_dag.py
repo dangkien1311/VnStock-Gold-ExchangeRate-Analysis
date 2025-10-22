@@ -4,8 +4,7 @@ from airflow.utils.session import create_session
 from datetime import datetime, timedelta
 import sys
 import os
-# dag_folder = os.path.dirname(__file__)
-# db_path = os.path.join(dag_folder, "..", "data","database_connection.json")
+
 sys.path.insert(0, os.path.abspath('/opt/airflow'))
 from stockapi.KFinance import Kf_function as Kff
 
@@ -34,10 +33,14 @@ default_args = {
 def get_data_stock_dag():
     @task
     def fetch_stock_data(stocks, date):
-        print(f"Fetching stock data for: {date}")
-        return Kff.get_data_stock(stocks, date)
+        number_days = 300
+        end = datetime.strptime(date, '%Y-%m-%d').date()
+        start = (end - timedelta(days=number_days)).strftime('%Y-%m-%d')
+        end = end.strftime('%Y-%m-%d')
+        Kff.stock_history(stock=stocks, start_date=start, end_date=end)
+        return f"Stock data for {stocks} from {start} to {end} fetched."
 
-    fetch_stock_data(stocks, today)
+    fetch_stock_data("TCB", today)
 get_data_stock = get_data_stock_dag()
 
 

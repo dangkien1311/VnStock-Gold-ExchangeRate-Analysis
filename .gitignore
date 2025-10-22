@@ -1,3 +1,10 @@
 .venv
 stockapi/KFinance/Key_info.json
 /logs
+
+**/__pycache__/
+__pycache__/
+*.pyc
+*.pyo
+
+venv/

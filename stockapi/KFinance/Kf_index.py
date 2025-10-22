@@ -1,6 +1,7 @@
 import pandas as pd
 from urllib.parse import urljoin
 from vnstock import Vnstock
+from vnstock import Quote
 from vnstock.botbuilder.noti import Messenger
 from datetime import datetime,timedelta,date
 import matplotlib.pyplot as plt
