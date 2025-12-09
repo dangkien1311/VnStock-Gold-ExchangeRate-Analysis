@@ -1,3 +1,4 @@
+import time
 from airflow.decorators import dag, task
 from airflow.models import DagRun
 from airflow.utils.session import create_session
@@ -8,7 +9,7 @@ import os
 sys.path.insert(0, os.path.abspath('/opt/airflow'))
 from stockapi.KFinance import Kf_function as Kff
 
-stocks = ['MML', 'MBB']
+stocks = ['HPG','VND','SAB','MBB','MML','FPT','TCB','MCH','VCB']
 today = datetime.today().strftime('%Y-%m-%d')
 
 default_args = {
@@ -33,27 +34,32 @@ default_args = {
 def get_data_stock_dag():
     @task
     def fetch_stock_data(stocks, date):
-        number_days = 300
+        number_days = 1022
         end = datetime.strptime(date, '%Y-%m-%d').date()
         start = (end - timedelta(days=number_days)).strftime('%Y-%m-%d')
         end = end.strftime('%Y-%m-%d')
-        Kff.stock_history(stock=stocks, start_date=start, end_date=end)
+        for stock in stocks:
+            Kff.get_stock_history(stock=stock, start_date=start, end_date=end)
         return f"Stock data for {stocks} from {start} to {end} fetched."
-
-    fetch_stock_data("TCB", today)
+    
+    @task
+    def caculate_index_for_stocks(stocks):
+        for stock in stocks:
+            Kff.caculate_index(stock)
+        return f"indexes calculated for stocks: {stocks}."
+    fetch_stock_data(stocks, today) >> caculate_index_for_stocks(stocks)
 get_data_stock = get_data_stock_dag()
 
 
 @dag(
-    dag_id="mfi_index",
-    description="Calculate MFI index for stocks",
+    dag_id="Stock_analysis",
+    description="Run stock analysis index calculation and visualization",
     default_args=default_args,
     schedule_interval=None,
     catchup=False,
-    tags=["finance", "MFI"],
+    tags=["finance", "stock_analysis", "visualization"],
 )
-def mfi_index_dag():
-
+def index_analysis_dag():
     @task
     def check_missing_date():
         with create_session() as session:
@@ -66,37 +72,53 @@ def mfi_index_dag():
             )
 
         today = datetime.today().date()
-        last_date = last_run.execution_date.date() if last_run else (today - timedelta(days=1))
+        last_date = last_run.execution_date.date() if last_run else today 
 
         missing_dates = []
         check_date = last_date
 
-        while check_date < (today - timedelta(days=1)):
+        while check_date < today:
             missing_dates.append(check_date.isoformat())
             check_date += timedelta(days=1)
 
         print("Last run:", last_run)
         print("Missing dates:", missing_dates)
         return missing_dates
+    
+    @task
+    def fetch_stock_data(stocks, date):
+        number_days = 1022
+        end = datetime.strptime(date, '%Y-%m-%d').date()
+        start = (end - timedelta(days=number_days)).strftime('%Y-%m-%d')
+        end = end.strftime('%Y-%m-%d')
+        for stock in stocks:
+            Kff.get_stock_history(stock=stock, start_date=start, end_date=end)
+        return f"Stock data for {stocks} from {start} to {end} fetched."
+    
+    @task
+    def caculate_index_for_stocks(stocks):
+        for stock in stocks:
+            Kff.caculate_index(stock)
+        return f"indexes calculated for stocks: {stocks}."
 
     @task
-    def calculate_mfi(stocks, list_date):
+    def visualize_index(stocks, list_date):
         today = datetime.today().strftime('%Y-%m-%d')
 
         if not list_date:
-            print(f"Running MFI for today: {today}")
-            Kff.run_mfi(stocks, today)
+            print(f"Visualizing for: {today}")
+            Kff.visualize_stock_indicators(stocks, today)
         else:
             for d in list_date:
-                print(f"Running MFI for missing date: {d}")
-                Kff.run_mfi(stocks, d)
-        return "MFI calculation complete."
+                print(f"Running visualization for missing date: {d}")
+                Kff.visualize_stock_indicators(stocks, d)
+        return "Visualization complete."
 
     # Task dependencies
     missing = check_missing_date()
-    calculate_mfi(stocks, missing)
+    fetch_stock_data(stocks, today) >> caculate_index_for_stocks(stocks) >> visualize_index(stocks, missing)
 
-mfi_index = mfi_index_dag()
+index_analysis = index_analysis_dag()
 
 @dag(
     dag_id="VND_exchange_rate",
